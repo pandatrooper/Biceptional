@@ -209,7 +209,7 @@ final class HealthKitManager {
         let predicate = HKQuery.predicateForSamples(withStart: window.start, end: window.end)
         let samples: [HKCategorySample]
         do {
-            samples = try await samples(of: type, predicate: predicate)
+            samples = try await querySamples(of: type, predicate: predicate)
         } catch {
             logger.error("Sleep query failed: \(error.localizedDescription, privacy: .public)")
             return []
@@ -240,7 +240,7 @@ final class HealthKitManager {
         let type = HKQuantityType(.heartRate)
         let predicate = HKQuery.predicateForSamples(withStart: start, end: end)
         do {
-            let samples: [HKQuantitySample] = try await samples(of: type, predicate: predicate)
+            let samples: [HKQuantitySample] = try await querySamples(of: type, predicate: predicate)
             let unit = HKUnit.count().unitDivided(by: .minute())
             return samples.map { ($0.startDate, $0.quantity.doubleValue(for: unit)) }
         } catch {
@@ -278,7 +278,7 @@ final class HealthKitManager {
         let type = HKObjectType.workoutType()
         let sort = NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: false)
         do {
-            let found: [HKWorkout] = try await samples(of: type, predicate: nil, limit: limit, sortDescriptors: [sort])
+            let found: [HKWorkout] = try await querySamples(of: type, predicate: nil, limit: limit, sortDescriptors: [sort])
             return found
         } catch {
             logger.error("Workout query failed: \(error.localizedDescription, privacy: .public)")
@@ -303,7 +303,7 @@ final class HealthKitManager {
         let start = Date.now.adding(days: -days)
         let predicate = HKQuery.predicateForSamples(withStart: start, end: Date.now)
         do {
-            let samples: [HKQuantitySample] = try await samples(of: type, predicate: predicate)
+            let samples: [HKQuantitySample] = try await querySamples(of: type, predicate: predicate)
             return samples.map { ($0.uuid, $0.startDate, $0.quantity.doubleValue(for: .gramUnit(with: .kilo))) }
         } catch {
             logger.error("Body mass query failed: \(error.localizedDescription, privacy: .public)")
@@ -386,11 +386,11 @@ final class HealthKitManager {
         try await builder.beginCollection(at: start)
         if let energyKilocalories {
             let sample = quantitySample(.activeEnergyBurned, value: energyKilocalories, unit: .kilocalorie(), start: start, end: end)
-            try await builder.add([sample])
+            try await addSamples([sample], to: builder)
         }
         if let distanceMeters, distanceMeters > 0 {
             let sample = quantitySample(.distanceWalkingRunning, value: distanceMeters, unit: .meter(), start: start, end: end)
-            try await builder.add([sample])
+            try await addSamples([sample], to: builder)
         }
         try await builder.endCollection(at: end)
         let workout = try await builder.finishWorkout()
@@ -434,7 +434,7 @@ final class HealthKitManager {
         let predicate = HKQuery.predicateForSamples(withStart: start, end: end)
         let sort = NSSortDescriptor(key: HKSampleSortIdentifierEndDate, ascending: false)
         do {
-            let found: [HKQuantitySample] = try await samples(of: type, predicate: predicate, limit: 1, sortDescriptors: [sort])
+            let found: [HKQuantitySample] = try await querySamples(of: type, predicate: predicate, limit: 1, sortDescriptors: [sort])
             return found.first?.quantity.doubleValue(for: unit)
         } catch {
             return nil
@@ -485,7 +485,22 @@ final class HealthKitManager {
         }
     }
 
-    private func samples<T: HKSample>(
+    /// `HKWorkoutBuilder.add(_:completion:)` has no async overload, so wrap the callback.
+    private func addSamples(_ samples: [HKSample], to builder: HKWorkoutBuilder) async throws {
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            builder.add(samples) { success, error in
+                if let error {
+                    continuation.resume(throwing: error)
+                } else if success {
+                    continuation.resume()
+                } else {
+                    continuation.resume(throwing: HealthKitManagerError.workoutBuildFailed)
+                }
+            }
+        }
+    }
+
+    private func querySamples<T: HKSample>(
         of sampleType: HKSampleType,
         predicate: NSPredicate?,
         limit: Int = HKObjectQueryNoLimit,
