@@ -148,12 +148,12 @@ final class HealthKitManager {
     private func startObserving() {
         stopObserving()
         for type in observerTypes {
-            let query = HKObserverQuery(sampleType: type, predicate: nil) { _, completionHandler, error in
+            let query = HKObserverQuery(sampleType: type, predicate: nil) { [weak self] _, completionHandler, error in
                 if error != nil {
                     completionHandler()
                     return
                 }
-                Task { @MainActor [weak self] in
+                Task { @MainActor in
                     self?.onDataDidChange?()
                 }
                 completionHandler()
