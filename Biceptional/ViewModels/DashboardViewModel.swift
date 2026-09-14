@@ -20,6 +20,11 @@ final class DashboardViewModel {
     var healthDietary: DietaryDay?
     var isRefreshing = false
     var lastExplanation: String = ""
+    var sleepTargetMinHours: Double = 7.5
+    var sleepTargetMaxHours: Double = 8.5
+    var hrvSDNN: Double?
+    var hrvBaseline: Double?
+    var updatedAt: Date?
 
     func load(context: ModelContext, healthKit: HealthKitManager) async {
         isRefreshing = true
@@ -27,11 +32,15 @@ final class DashboardViewModel {
         let prefs = ScoreRefreshService.preferences(in: context)
         calorieTarget = prefs.calorieTarget
         proteinTarget = prefs.proteinTargetGrams
+        sleepTargetMinHours = prefs.sleepTargetMinHours
+        sleepTargetMaxHours = prefs.sleepTargetMaxHours
 
         let snapshot = ScoreRefreshService.snapshot(for: .now, in: context)
         lastExplanation = snapshot.recoveryExplanation
         steps = snapshot.steps
         activeCalories = snapshot.activeCalories
+        updatedAt = snapshot.updatedAt
+        hrvSDNN = snapshot.hrvSDNN
 
         let nights = await healthKit.sleepNights(endingOn: .now, days: 14)
         let morning = CalendarDay.start(of: .now)
@@ -54,6 +63,8 @@ final class DashboardViewModel {
             rrBaseline: await rrBase,
             sleepScore: sleep?.score
         )
+        hrvSDNN = physiology.hrvSDNN ?? hrvSDNN
+        hrvBaseline = await hrvBase?.mean
 
         let activity = await healthKit.activityTotals(on: morning)
         steps = activity.steps

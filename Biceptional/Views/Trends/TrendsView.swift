@@ -48,6 +48,8 @@ struct TrendsView: View {
                     )
                 }
             }
+            .scrollContentBackground(.hidden)
+            .background(Color.canvas)
             .navigationTitle(String(localized: "Trends"))
             .onAppear { model.load(context: modelContext) }
         }
@@ -61,17 +63,17 @@ struct TrendsView: View {
             case .recovery:
                 if let value = point.recovery {
                     LineMark(x: .value("Day", point.day), y: .value("Recovery", value))
-                        .foregroundStyle(Color.green)
+                        .foregroundStyle(Color.recoveryGreen)
                 }
             case .sleep:
                 if let value = point.sleep {
                     LineMark(x: .value("Day", point.day), y: .value("Sleep", value))
-                        .foregroundStyle(Color.indigo)
+                        .foregroundStyle(Color.stageREM)
                 }
             case .strain:
                 if let value = point.strain {
                     BarMark(x: .value("Day", point.day), y: .value("Strain", value))
-                        .foregroundStyle(Color.orange)
+                        .foregroundStyle(Color.strainMid)
                 }
             case .weight:
                 if let value = point.weightKg {

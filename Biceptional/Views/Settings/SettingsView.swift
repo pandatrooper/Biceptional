@@ -82,6 +82,8 @@ struct SettingsView: View {
                         .foregroundStyle(.secondary)
                 }
             }
+            .scrollContentBackground(.hidden)
+            .background(Color.canvas)
             .navigationTitle(String(localized: "Settings"))
             .fileExporter(
                 isPresented: $showExporter,

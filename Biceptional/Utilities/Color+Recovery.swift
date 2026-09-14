@@ -1,24 +1,35 @@
 import SwiftUI
 
 extension Color {
-    /// Recovery / sleep / strain traffic-light using semantic system colors so
-    /// they track Dark Mode and Increase Contrast rather than hardcoded hex.
+    static let canvas = Color("Canvas")
+    static let cardFill = Color("CardFill")
+    static let hairline = Color("Hairline")
+    static let recoveryGreen = Color("RecoveryGreen")
+    static let recoveryYellow = Color("RecoveryYellow")
+    static let recoveryRed = Color("RecoveryRed")
+    static let strainLow = Color("StrainLow")
+    static let strainMid = Color("StrainMid")
+    static let strainHigh = Color("StrainHigh")
+    static let stageDeep = Color("StageDeep")
+    static let stageCore = Color("StageCore")
+    static let stageREM = Color("StageREM")
+    static let stageAwake = Color("StageAwake")
+
     static func recoveryBand(_ score: Double?) -> Color {
-        guard let score else { return .secondary }
-        switch score {
-        case 67...: return .green
-        case 34..<67: return .orange
-        default: return .red
-        }
+        RecoveryBand(score: score).color
     }
 
     static func strainBand(_ strain: Double?) -> Color {
-        guard let strain else { return .secondary }
-        // 0–21 WHOOP-style scale.
-        switch strain {
-        case 14...: return .red
-        case 8..<14: return .orange
-        default: return .blue
+        StrainIntensity(score: strain).color
+    }
+
+    static func stage(_ stage: SleepStage) -> Color {
+        switch stage {
+        case .deep: .stageDeep
+        case .core, .asleepUnspecified: .stageCore
+        case .rem: .stageREM
+        case .awake: .stageAwake
+        case .inBed: .hairline
         }
     }
 }
@@ -41,6 +52,15 @@ enum RecoveryBand: String {
         }
     }
 
+    var color: Color {
+        switch self {
+        case .high: .recoveryGreen
+        case .moderate: .recoveryYellow
+        case .low: .recoveryRed
+        case .unknown: .secondary
+        }
+    }
+
     var localizedName: String {
         switch self {
         case .high: String(localized: "Green")
@@ -48,5 +68,79 @@ enum RecoveryBand: String {
         case .low: String(localized: "Red")
         case .unknown: String(localized: "Unknown")
         }
+    }
+
+    var chipTitle: String {
+        localizedName.uppercased()
+    }
+}
+
+enum StrainIntensity {
+    case light
+    case moderate
+    case high
+    case unknown
+
+    init(score: Double?) {
+        guard let score else {
+            self = .unknown
+            return
+        }
+        switch score {
+        case 14...: self = .high
+        case 8..<14: self = .moderate
+        default: self = .light
+        }
+    }
+
+    var color: Color {
+        switch self {
+        case .light: .strainLow
+        case .moderate: .strainMid
+        case .high: .strainHigh
+        case .unknown: .secondary
+        }
+    }
+
+    var localizedName: String {
+        switch self {
+        case .light: String(localized: "Light")
+        case .moderate: String(localized: "Moderate")
+        case .high: String(localized: "High")
+        case .unknown: String(localized: "None")
+        }
+    }
+}
+
+enum Theme {
+    static func display(_ size: CGFloat, weight: Font.Weight = .bold) -> Font {
+        .system(size: size, weight: weight, design: .rounded)
+    }
+
+    static var sectionLabel: Font { .caption.weight(.semibold) }
+
+    static var coach: Font { .callout }
+
+    static var score: Font { display(44) }
+}
+
+struct SectionLabel: View {
+    var text: String
+
+    var body: some View {
+        Text(text.uppercased())
+            .font(Theme.sectionLabel)
+            .tracking(1.2)
+            .foregroundStyle(.secondary)
+    }
+}
+
+struct BiceptionalScreen<Content: View>: View {
+    @ViewBuilder var content: Content
+
+    var body: some View {
+        content
+            .scrollContentBackground(.hidden)
+            .background(Color.canvas.ignoresSafeArea())
     }
 }

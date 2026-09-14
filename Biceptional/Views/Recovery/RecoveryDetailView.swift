@@ -5,67 +5,85 @@ struct RecoveryDetailView: View {
     var result: RecoveryResult?
 
     var body: some View {
-        List {
-            Section {
-                HStack {
-                    Spacer()
-                    ScoreRing(score: result?.score, color: .recoveryBand(result?.score))
-                        .frame(width: 160, height: 160)
-                        .padding(.vertical)
-                    Spacer()
-                }
-                .listRowBackground(Color.clear)
-                Text(result?.explanation ?? String(localized: "No Recovery score yet."))
-                    .font(.body)
-            }
-
-            Section(String(localized: "Why this score")) {
-                if let components = result?.components {
-                    ForEach(components) { component in
-                        VStack(alignment: .leading, spacing: 6) {
-                            HStack {
-                                Label(component.name, systemImage: component.symbolName)
-                                Spacer()
-                                Text(percent(component.weight))
-                                    .foregroundStyle(.secondary)
-                                    .monospacedDigit()
-                            }
-                            ProgressView(value: (component.score ?? 0) / 100)
-                                .tint(Color.recoveryBand(component.score))
-                            HStack {
-                                if let raw = component.rawValue {
-                                    Text("\(raw.formatted(.number.precision(.fractionLength(0...1)))) \(component.unitLabel)")
-                                }
-                                if let mean = component.baselineMean {
-                                    Text(String(localized: "baseline \(mean.formatted(.number.precision(.fractionLength(0...1))))"))
-                                        .foregroundStyle(.secondary)
-                                }
-                                Spacer()
-                                if let z = component.zScore {
-                                    Text(String(localized: "z \(z.formatted(.number.precision(.fractionLength(1))))"))
-                                        .font(.caption.monospacedDigit())
-                                        .foregroundStyle(.secondary)
-                                }
-                            }
-                            .font(.caption)
-                            Text(component.note)
-                                .font(.footnote)
-                                .foregroundStyle(.secondary)
-                        }
-                        .padding(.vertical, 4)
-                        .accessibilityElement(children: .combine)
+        ScrollView {
+            VStack(alignment: .leading, spacing: 20) {
+                BiceptionalCard {
+                    VStack(spacing: 16) {
+                        HeroRing(score: result?.score)
+                            .frame(width: 200, height: 200)
+                        Text(result?.explanation ?? String(localized: "No Recovery score yet."))
+                            .font(Theme.coach)
+                            .multilineTextAlignment(.center)
+                            .frame(maxWidth: .infinity)
                     }
                 }
-            }
 
-            Section(String(localized: "Formula")) {
-                Text(String(localized: "Recovery is a weighted blend of overnight HRV, resting heart rate, last night’s Sleep score, and respiratory rate — each scored as a z-score against your own 30-day baseline, then mapped to 0–100. Missing signals are dropped and the remaining weights are renormalized. Details live in ScoringEngine.swift."))
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
+                SectionLabel(text: String(localized: "Why this score"))
+                if let components = result?.components {
+                    BiceptionalCard {
+                        VStack(alignment: .leading, spacing: 16) {
+                            ForEach(components) { component in
+                                contributionRow(component)
+                            }
+                        }
+                    }
+                }
+
+                SectionLabel(text: String(localized: "Formula"))
+                BiceptionalCard {
+                    Text(String(localized: "Recovery is a weighted blend of overnight HRV, resting heart rate, last night’s Sleep score, and respiratory rate — each scored as a z-score against your own 30-day baseline, then mapped to 0–100. Missing signals are dropped and the remaining weights are renormalized."))
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
             }
+            .padding(16)
         }
+        .background(Color.canvas.ignoresSafeArea())
         .navigationTitle(String(localized: "Recovery"))
         .navigationBarTitleDisplayMode(.inline)
+    }
+
+    private func contributionRow(_ component: RecoveryComponent) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                Label(component.name, systemImage: component.symbolName)
+                    .font(.subheadline.weight(.semibold))
+                Spacer()
+                Text(percent(component.weight))
+                    .font(.subheadline.monospacedDigit())
+                    .foregroundStyle(.secondary)
+            }
+            GeometryReader { proxy in
+                ZStack(alignment: .leading) {
+                    Capsule().fill(Color.hairline)
+                    Capsule()
+                        .fill(Color.recoveryBand(component.score))
+                        .frame(width: proxy.size.width * ((component.score ?? 0) / 100))
+                }
+            }
+            .frame(height: 8)
+            HStack {
+                if let raw = component.rawValue {
+                    Text("\(raw.formatted(.number.precision(.fractionLength(0...1)))) \(component.unitLabel)")
+                }
+                if let mean = component.baselineMean {
+                    Text(String(localized: "baseline \(mean.formatted(.number.precision(.fractionLength(0...1))))"))
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+            }
+            .font(.caption)
+            .monospacedDigit()
+            Text(component.note)
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+            if let z = component.zScore {
+                Text(String(localized: "z \(z.formatted(.number.precision(.fractionLength(1))))"))
+                    .font(.caption2.monospacedDigit())
+                    .foregroundStyle(.tertiary)
+            }
+        }
+        .accessibilityElement(children: .combine)
     }
 
     private func percent(_ weight: Double) -> String {
@@ -79,51 +97,79 @@ struct SleepDetailView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                HStack {
-                    ScoreRing(score: result?.score, color: .recoveryBand(result?.score))
-                        .frame(width: 140, height: 140)
-                    VStack(alignment: .leading, spacing: 6) {
-                        if let night = result?.night {
-                            labeled(String(localized: "Asleep"), Formatters.hours(night.asleepHours))
-                            labeled(String(localized: "In bed"), Formatters.hoursMinutes(night.timeInBed))
-                            labeled(String(localized: "Bed"), Formatters.shortTime.string(from: night.bedtime))
-                            labeled(String(localized: "Wake"), Formatters.shortTime.string(from: night.wakeTime))
+                BiceptionalCard {
+                    HStack(alignment: .center, spacing: 16) {
+                        HeroRing(score: result?.score)
+                            .frame(width: 132, height: 132)
+                        VStack(alignment: .leading, spacing: 8) {
+                            if let night = result?.night {
+                                labeled(String(localized: "Asleep"), Formatters.hours(night.asleepHours))
+                                labeled(String(localized: "In bed"), Formatters.hoursMinutes(night.timeInBed))
+                                labeled(String(localized: "Bed"), Formatters.shortTime.string(from: night.bedtime))
+                                labeled(String(localized: "Wake"), Formatters.shortTime.string(from: night.wakeTime))
+                            }
                         }
+                        Spacer(minLength: 0)
                     }
-                    Spacer()
+                    if let explanation = result?.explanation {
+                        Text(explanation)
+                            .font(Theme.coach)
+                            .padding(.top, 8)
+                    }
                 }
 
-                Text(result?.explanation ?? "")
-                    .font(.body)
-
                 if let night = result?.night, !night.stages.isEmpty {
-                    Text(String(localized: "Hypnogram"))
-                        .font(.headline)
-                    HypnogramChart(night: night)
-                        .frame(height: 180)
-                    stageLegend(night)
+                    SectionLabel(text: String(localized: "Hypnogram"))
+                    BiceptionalCard {
+                        VStack(alignment: .leading, spacing: 12) {
+                            HypnogramChart(night: night)
+                                .frame(height: 180)
+                            HStack {
+                                Text(Formatters.shortTime.string(from: night.bedtime))
+                                Spacer()
+                                Text(Formatters.shortTime.string(from: night.wakeTime))
+                            }
+                            .font(.caption.monospacedDigit())
+                            .foregroundStyle(.secondary)
+                            stageLegend(night)
+                        }
+                    }
                 }
 
                 if let components = result?.components {
-                    ForEach(components) { component in
-                        VStack(alignment: .leading, spacing: 4) {
-                            HStack {
-                                Text(component.name)
-                                Spacer()
-                                Text(component.score.formatted(.number.precision(.fractionLength(0))))
-                                    .monospacedDigit()
+                    SectionLabel(text: String(localized: "Breakdown"))
+                    BiceptionalCard {
+                        VStack(alignment: .leading, spacing: 14) {
+                            ForEach(components) { component in
+                                VStack(alignment: .leading, spacing: 4) {
+                                    HStack {
+                                        Text(component.name)
+                                        Spacer()
+                                        Text(component.score.formatted(.number.precision(.fractionLength(0))))
+                                            .monospacedDigit()
+                                    }
+                                    .font(.subheadline.weight(.semibold))
+                                    GeometryReader { proxy in
+                                        ZStack(alignment: .leading) {
+                                            Capsule().fill(Color.hairline)
+                                            Capsule()
+                                                .fill(Color.recoveryBand(component.score))
+                                                .frame(width: proxy.size.width * (component.score / 100))
+                                        }
+                                    }
+                                    .frame(height: 8)
+                                    Text(component.detail)
+                                        .font(.footnote)
+                                        .foregroundStyle(.secondary)
+                                }
                             }
-                            .font(.subheadline.weight(.semibold))
-                            ProgressView(value: component.score / 100)
-                            Text(component.detail)
-                                .font(.footnote)
-                                .foregroundStyle(.secondary)
                         }
                     }
                 }
             }
-            .padding()
+            .padding(16)
         }
+        .background(Color.canvas.ignoresSafeArea())
         .navigationTitle(String(localized: "Sleep"))
         .navigationBarTitleDisplayMode(.inline)
     }
@@ -151,8 +197,11 @@ struct SleepDetailView: View {
     }
 
     private func legend(_ stage: SleepStage, _ fraction: Double) -> some View {
-        VStack(alignment: .leading) {
-            Text(stage.localizedName)
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: 6) {
+                Circle().fill(Color.stage(stage)).frame(width: 8, height: 8)
+                Text(stage.localizedName)
+            }
             Text((fraction * 100).formatted(.number.precision(.fractionLength(0))) + "%")
                 .foregroundStyle(.secondary)
                 .monospacedDigit()
@@ -171,7 +220,7 @@ struct HypnogramChart: View {
                 xEnd: .value(String(localized: "End"), interval.end),
                 y: .value(String(localized: "Stage"), interval.stage.localizedName)
             )
-            .foregroundStyle(by: .value(String(localized: "Stage"), interval.stage.localizedName))
+            .foregroundStyle(Color.stage(interval.stage))
         }
         .chartYScale(domain: [
             SleepStage.deep.localizedName,
@@ -179,6 +228,13 @@ struct HypnogramChart: View {
             SleepStage.rem.localizedName,
             SleepStage.awake.localizedName
         ])
+        .chartXAxis {
+            AxisMarks(values: .automatic(desiredCount: 4)) { _ in
+                AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
+                    .foregroundStyle(Color.hairline)
+                AxisValueLabel()
+            }
+        }
         .chartLegend(.hidden)
         .accessibilityLabel(String(localized: "Sleep stage timeline"))
         .accessibilityValue(String(localized: "From \(Formatters.shortTime.string(from: night.bedtime)) to \(Formatters.shortTime.string(from: night.wakeTime))"))

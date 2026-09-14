@@ -77,6 +77,8 @@ struct NutritionView: View {
                     }
                 }
             }
+            .scrollContentBackground(.hidden)
+            .background(Color.canvas)
             .navigationTitle(String(localized: "Nutrition"))
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {

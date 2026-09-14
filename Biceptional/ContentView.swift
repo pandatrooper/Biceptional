@@ -47,7 +47,7 @@ struct ContentView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(.systemBackground))
+        .background(Color.canvas)
     }
 
     /// First-launch Health prompt is the root view, not a sheet on top of
@@ -73,6 +73,8 @@ struct ContentView: View {
             SettingsView()
                 .tabItem { Label(String(localized: "Settings"), systemImage: "gear") }
         }
+        .toolbarBackground(Color.cardFill, for: .tabBar)
+        .toolbarBackground(.visible, for: .tabBar)
     }
 }
 
@@ -82,47 +84,53 @@ struct HealthAuthView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
+                VStack(alignment: .leading, spacing: 28) {
                     Image(systemName: "heart.text.clipboard.fill")
-                        .font(.system(size: 48))
+                        .font(.system(size: 52))
                         .symbolRenderingMode(.hierarchical)
-                        .foregroundStyle(.pink)
+                        .foregroundStyle(Color.recoveryGreen)
                         .accessibilityHidden(true)
 
-                    Text(String(localized: "Biceptional reads Apple Health"))
-                        .font(.largeTitle.bold())
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text(String(localized: "Your recovery, on this device."))
+                            .font(Theme.display(34, weight: .bold))
+                        Text(String(localized: "Biceptional reads Apple Health to compute Recovery, Sleep, and Strain from your own baseline. Nothing is sent to a server."))
+                            .font(Theme.coach)
+                            .foregroundStyle(.secondary)
+                    }
 
-                    Text(String(localized: "Recovery, Sleep, and Strain are computed on this device from HRV, resting heart rate, sleep, workouts, and nutrition. Nothing is sent to a server."))
-                        .foregroundStyle(.secondary)
-
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: 14) {
                         label(String(localized: "Read"), String(localized: "HRV, heart rate, sleep, energy, workouts, weight, VO₂ max, dietary macros"))
                         label(String(localized: "Write"), String(localized: "Workouts, body mass, and meals you log"))
                     }
 
-                    Button {
-                        Task { await healthKit.requestAuthorization() }
-                    } label: {
-                        Text(healthKit.authorizationState == .requesting
-                             ? String(localized: "Requesting…")
-                             : String(localized: "Continue"))
-                            .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .controlSize(.large)
-                    .disabled(healthKit.authorizationState == .requesting)
-                    .padding(.top, 12)
+                    VStack(spacing: 12) {
+                        Button {
+                            Task { await healthKit.requestAuthorization() }
+                        } label: {
+                            Text(healthKit.authorizationState == .requesting
+                                 ? String(localized: "Requesting…")
+                                 : String(localized: "Continue"))
+                                .font(.headline)
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(Color.recoveryGreen)
+                        .controlSize(.large)
+                        .disabled(healthKit.authorizationState == .requesting)
 
-                    Button(String(localized: "Browse without Health")) {
-                        healthKit.skipAuthorization()
+                        Button(String(localized: "Browse without Health")) {
+                            healthKit.skipAuthorization()
+                        }
+                        .font(.subheadline.weight(.semibold))
+                        .frame(maxWidth: .infinity)
                     }
-                    .frame(maxWidth: .infinity)
-                    .padding(.bottom, 24)
+                    .padding(.top, 8)
                 }
-                .padding()
+                .padding(24)
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .background(Color(.systemBackground))
+            .background(Color.canvas.ignoresSafeArea())
             .navigationBarTitleDisplayMode(.inline)
         }
     }

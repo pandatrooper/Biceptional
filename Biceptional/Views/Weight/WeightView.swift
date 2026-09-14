@@ -54,6 +54,8 @@ struct WeightView: View {
                     }
                 }
             }
+            .scrollContentBackground(.hidden)
+            .background(Color.canvas)
             .navigationTitle(String(localized: "Weight"))
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {

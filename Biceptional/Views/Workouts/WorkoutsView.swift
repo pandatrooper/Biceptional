@@ -38,9 +38,12 @@ struct WorkoutsView: View {
                         } label: {
                             WorkoutRow(workout: workout)
                         }
+                        .listRowBackground(Color.cardFill)
                     }
                 }
             }
+            .scrollContentBackground(.hidden)
+            .background(Color.canvas)
             .navigationTitle(String(localized: "Workouts"))
             .searchable(text: $model.search, prompt: String(localized: "Exercise or activity"))
             .toolbar {
@@ -152,6 +155,8 @@ struct WorkoutDetailView: View {
                 }
             }
         }
+        .scrollContentBackground(.hidden)
+        .background(Color.canvas)
         .navigationTitle(workout.name)
         .navigationBarTitleDisplayMode(.inline)
     }
