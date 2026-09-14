@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>NSHealthShareUsageDescription</key>
+	<string>Biceptional on Apple Watch reads heart rate and energy so you can start workouts and see live strain.</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>Biceptional on Apple Watch writes workouts you start from the wrist to Apple Health.</string>
+	<key>WKCompanionAppBundleIdentifier</key>
+	<string>com.pandatrooper.Biceptional</string>
+	<key>WKApplication</key>
+	<true/>
+</dict>
+</plist>

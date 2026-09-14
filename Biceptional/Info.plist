@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>NSHealthShareUsageDescription</key>
+	<string>Biceptional reads heart rate, HRV, sleep, workouts, weight, and nutrition from Apple Health to compute Recovery, Sleep, and Strain scores on this device. Data never leaves the phone unless you export it.</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>Biceptional writes workouts, body weight, and meals you log so they stay in Apple Health and remain available to other apps you use.</string>
+	<key>NSHealthClinicalUsageDescription</key>
+	<string>Biceptional does not read clinical health records. This key is reserved for HealthKit completeness.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>processing</string>
+		<string>fetch</string>
+	</array>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>com.pandatrooper.Biceptional.refreshScores</string>
+	</array>
+</dict>
+</plist>
