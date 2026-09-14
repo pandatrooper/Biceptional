@@ -57,6 +57,7 @@ struct DashboardView: View {
                 await refresh()
             }
             .task {
+                guard healthKit.authorizationState != .notRequested else { return }
                 await refresh()
             }
             .onChange(of: healthKit.authorizationState) { _, state in

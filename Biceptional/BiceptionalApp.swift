@@ -4,10 +4,6 @@ import BackgroundTasks
 
 @main
 struct BiceptionalApp: App {
-    @State private var healthKit = HealthKitManager()
-    @State private var notifications = NotificationService()
-    @Environment(\.scenePhase) private var scenePhase
-
     private let container: ModelContainer
 
     init() {
@@ -47,37 +43,8 @@ struct BiceptionalApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .environment(healthKit)
-                .task {
-                    await healthKit.restoreBackgroundDeliveryIfPossible()
-                    let context = container.mainContext
-                    _ = ScoreRefreshService.preferences(in: context)
-                    healthKit.onDataDidChange = {
-                        Task { @MainActor in
-                            await ScoreRefreshService(healthKit: healthKit).refresh(context: container.mainContext)
-                        }
-                    }
-                    if UserDefaults.standard.bool(forKey: "didRequestHealthAuth"), healthKit.isHealthDataAvailable {
-                        await ScoreRefreshService(healthKit: healthKit).refresh(context: context)
-                    }
-                    await notifications.reschedule(preferences: ScoreRefreshService.preferences(in: context))
-                    await scheduleBackgroundRefresh()
-                }
-                .onChange(of: scenePhase) { _, phase in
-                    if phase == .active {
-                        Task {
-                            await ScoreRefreshService(healthKit: healthKit).refresh(context: container.mainContext)
-                        }
-                    }
-                }
+            RootView()
+                .modelContainer(container)
         }
-        .modelContainer(container)
-    }
-
-    private func scheduleBackgroundRefresh() async {
-        let request = BGAppRefreshTaskRequest(identifier: "com.pandatrooper.Biceptional.refreshScores")
-        request.earliestBeginDate = Date.now.addingTimeInterval(60 * 60)
-        try? await BGTaskScheduler.shared.submitTaskRequest(request)
     }
 }
