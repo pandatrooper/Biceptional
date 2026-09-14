@@ -40,7 +40,7 @@ struct BiceptionalApp: App {
         ) { task in
             let request = BGAppRefreshTaskRequest(identifier: "com.pandatrooper.Biceptional.refreshScores")
             request.earliestBeginDate = Date.now.addingTimeInterval(60 * 60)
-            try? BGTaskScheduler.shared.submit(request)
+            BGTaskScheduler.shared.submitTaskRequest(request) { _ in }
             task.setTaskCompleted(success: true)
         }
     }
@@ -62,7 +62,7 @@ struct BiceptionalApp: App {
                         await ScoreRefreshService(healthKit: healthKit).refresh(context: context)
                     }
                     await notifications.reschedule(preferences: ScoreRefreshService.preferences(in: context))
-                    scheduleBackgroundRefresh()
+                    await scheduleBackgroundRefresh()
                 }
                 .onChange(of: scenePhase) { _, phase in
                     if phase == .active {
@@ -75,9 +75,9 @@ struct BiceptionalApp: App {
         .modelContainer(container)
     }
 
-    private func scheduleBackgroundRefresh() {
+    private func scheduleBackgroundRefresh() async {
         let request = BGAppRefreshTaskRequest(identifier: "com.pandatrooper.Biceptional.refreshScores")
         request.earliestBeginDate = Date.now.addingTimeInterval(60 * 60)
-        try? BGTaskScheduler.shared.submit(request)
+        try? await BGTaskScheduler.shared.submitTaskRequest(request)
     }
 }

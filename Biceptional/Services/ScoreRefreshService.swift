@@ -109,8 +109,14 @@ final class ScoreRefreshService {
                 startDate: workout.startDate,
                 endDate: workout.endDate,
                 durationSeconds: workout.duration,
-                distanceMeters: stats.distance ?? workout.totalDistance?.doubleValue(for: .meter()),
-                activeEnergyKilocalories: stats.energy ?? workout.totalEnergyBurned?.doubleValue(for: .kilocalorie()),
+                distanceMeters: stats.distance
+                    ?? workout.statistics(for: HKQuantityType(.distanceWalkingRunning))?
+                    .sumQuantity()?
+                    .doubleValue(for: .meter()),
+                activeEnergyKilocalories: stats.energy
+                    ?? workout.statistics(for: HKQuantityType(.activeEnergyBurned))?
+                    .sumQuantity()?
+                    .doubleValue(for: .kilocalorie()),
                 averageHeartRate: stats.avgHR,
                 maxHeartRate: stats.maxHR
             )
