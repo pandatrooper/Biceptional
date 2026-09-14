@@ -73,6 +73,7 @@ struct ContentView: View {
             SettingsView()
                 .tabItem { Label(String(localized: "Settings"), systemImage: "gear") }
         }
+        .tint(Color.recoveryGreen)
         .toolbarBackground(Color.cardFill, for: .tabBar)
         .toolbarBackground(.visible, for: .tabBar)
     }

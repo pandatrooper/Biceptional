@@ -1,20 +1,6 @@
 import SwiftUI
 
 extension Color {
-    static let canvas = Color("Canvas")
-    static let cardFill = Color("CardFill")
-    static let hairline = Color("Hairline")
-    static let recoveryGreen = Color("RecoveryGreen")
-    static let recoveryYellow = Color("RecoveryYellow")
-    static let recoveryRed = Color("RecoveryRed")
-    static let strainLow = Color("StrainLow")
-    static let strainMid = Color("StrainMid")
-    static let strainHigh = Color("StrainHigh")
-    static let stageDeep = Color("StageDeep")
-    static let stageCore = Color("StageCore")
-    static let stageREM = Color("StageREM")
-    static let stageAwake = Color("StageAwake")
-
     static func recoveryBand(_ score: Double?) -> Color {
         RecoveryBand(score: score).color
     }
