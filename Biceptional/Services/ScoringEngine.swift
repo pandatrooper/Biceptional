@@ -169,7 +169,7 @@ enum ScoringEngine {
             )
         }
 
-        let durationScore = durationComponent(hours: night.asleepHours, min: targetMinHours, max: targetMaxHours)
+        let durationScore = durationComponent(hours: night.asleepHours, minHours: targetMinHours, maxHours: targetMaxHours)
         let consistency = consistencyComponent(nights: recentNights + [night])
         let stages = night.hasStaging ? stageComponent(night: night) : nil
 
@@ -469,18 +469,18 @@ enum ScoringEngine {
         }
     }
 
-    private static func durationComponent(hours: Double, min: Double, max: Double) -> (score: Double, detail: String) {
+    private static func durationComponent(hours: Double, minHours: Double, maxHours: Double) -> (score: Double, detail: String) {
         let score: Double
-        if hours >= min && hours <= max {
+        if hours >= minHours && hours <= maxHours {
             score = 100
-        } else if hours < min {
-            score = clamp(100 * (hours / max(min, 0.1)), 0, 100)
+        } else if hours < minHours {
+            score = clamp(100 * (hours / Swift.max(minHours, 0.1)), 0, 100)
         } else {
             // Mild oversleep penalty — 50% extra duration → score 60.
-            let overshoot = (hours - max) / max(max, 0.1)
+            let overshoot = (hours - maxHours) / Swift.max(maxHours, 0.1)
             score = clamp(100 * (1 - 0.4 * overshoot), 0, 100)
         }
-        let range = "\(min.formatted(.number.precision(.fractionLength(1))))–\(max.formatted(.number.precision(.fractionLength(1))))h"
+        let range = "\(minHours.formatted(.number.precision(.fractionLength(1))))–\(maxHours.formatted(.number.precision(.fractionLength(1))))h"
         let actual = hours.formatted(.number.precision(.fractionLength(1)))
         return (score, String(localized: "\(actual)h asleep vs. \(range) target."))
     }
