@@ -1,0 +1,31 @@
+# Xcode
+DerivedData/
+*.xcuserstate
+*.xccheckout
+*.xcscmblueprint
+xcuserdata/
+*.moved-aside
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Swift Package Manager
+.build/
+.swiftpm/
+Packages.resolved
+
+# CocoaPods / Carthage (not used, ignore if created)
+Pods/
+Carthage/Build/
+
+# macOS
+.DS_Store
+*.swp
+*~
+
+# Local secrets / signing
+*.mobileprovision
+*.p12
+*.cer
+*.certSigningRequest
